@@ -61,8 +61,12 @@ class _OptionHandler(object):
 VALIDATION_ERRORS = (AssertionError, TypeError, ValueError, ValidationError)
 # hmm
 def extract_message_from_exception(e):
-    # return ", ".join(e.args) if hasattr(e, "args") else e
-    return str(e)
+    if isinstance(e, (str, unicode)):
+        return e
+    elif isinstance(e, Exception):
+        return str(e)
+    else:
+        return e
 
 def extract_message_full(e):
     return e
