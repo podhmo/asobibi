@@ -141,24 +141,24 @@ class ValidatorExtraDataTests(unittest.TestCase):
 
     ## on setup phase
     def test_using_field_name_is_conflicted(self):
-        from asobibi import SetupError
+        from asobibi import ConstructionError
         Schema = self._get_schema()
-        with self.assertRaises(SetupError) as e:
+        with self.assertRaises(ConstructionError) as e:
             e.expected_regexp = "conflict"
             self._getTarget()("Validator", [((Schema.val, Schema.val),  lambda k, val: True)])
         
     def test_using_too_many_field(self):
-        from asobibi import SetupError
+        from asobibi import ConstructionError
         from asobibi import schema
         Schema = schema("Schema", [("val0", {}), ("val1", {})])
-        with self.assertRaises(SetupError) as e:
+        with self.assertRaises(ConstructionError) as e:
             e.expected_regexp = "too many"
             self._getTarget()("Validator", [((Schema.val0, Schema.val1),  lambda k, val0: True)])
         
     def test_using_too_few_field(self):
-        from asobibi import SetupError
+        from asobibi import ConstructionError
         Schema = self._get_schema()
-        with self.assertRaises(SetupError) as e:
+        with self.assertRaises(ConstructionError) as e:
             e.expected_regexp = "too few"
             self._getTarget()("Validator", [((Schema.val),  lambda k, val, extra: True)])
 

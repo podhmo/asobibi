@@ -32,6 +32,3 @@ setup(name='asobibi',
       entry_points = """
       """,
       )
-
-
-

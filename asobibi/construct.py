@@ -2,12 +2,9 @@ import inspect
 import functools
 from collections import defaultdict
 from langhelpers import SymbolPool
-from .structure import Nil, gennil, getitem_not_nil
-from .structure import Success, Failure
-from .converters import Int, Float, String, Unicode
-from .converters import as_converter
+from .structure import gennil, getitem_not_nil
 
-class SetupError(Exception):
+class ConstructionError(Exception):
     pass
 
 class InitializeError(Exception):
@@ -73,7 +70,7 @@ def extract_message_full(e):
 def field(name, **options):
     for k in options:
         if not k in Op:
-            raise SetupError("{0} is not reserved in Op ({0})".format(Op))
+            raise ConstructionError("{0} is not reserved in Op ({0})".format(Op))
     return (name, options)
 
 def schema(name, fields, 
@@ -214,7 +211,7 @@ def lifted(fields, validate_fn):
         fields = (fields,)
 
     if len(fields) != len(set(fields)):
-        raise SetupError("candidate fields name is conflicted.(len(fields) != len(set(fields))) fields={0}".format(fields))
+        raise ConstructionError("candidate fields name is conflicted.(len(fields) != len(set(fields))) fields={0}".format(fields))
 
     if WithExtra.is_tagged(validate_fn):
         spec = WithExtra.argspec(validate_fn)
@@ -226,10 +223,10 @@ def lifted(fields, validate_fn):
     arity_from_validate_fn = len(spec.args)-len(spec.defaults or [])
 
     if arity_from_schema_fields > arity_from_validate_fn:
-        raise SetupError("too many candidate fields. len({0})+1 > {1}".format(fields, arity_from_validate_fn))
+        raise ConstructionError("too many candidate fields. len({0})+1 > {1}".format(fields, arity_from_validate_fn))
     elif arity_from_schema_fields != arity_from_validate_fn:
         if not WithExtra.is_tagged(validate_fn):
-            raise SetupError("too few candidate fields. len({0})+1 < {1}".format(fields, arity_from_validate_fn))
+            raise ConstructionError("too few candidate fields. len({0})+1 < {1}".format(fields, arity_from_validate_fn))
         extra_fields = spec.args[arity_from_schema_fields:]
     return fields, extra_fields, validate_fn, spec
 
