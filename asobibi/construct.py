@@ -1,8 +1,11 @@
 import inspect
-import functools
 from collections import defaultdict
-from langhelpers import SymbolPool
-from langhelpers import mergeable
+from langhelpers import (
+    SymbolPool, 
+    mergeable, 
+    ComfortableProperty, 
+    Dispatch
+)
 from .structure import gennil, getitem_not_nil
 from .structure import Success
 from .exceptions import (
@@ -26,18 +29,6 @@ def _field(name, **options):
     return (name, options)
 
 field = mergeable(_field).merged
-
-## todo:rename
-class ComfortableProperty(object):
-    def __init__(self, fieldname, access):
-        self.fieldname = fieldname
-        self.access = access
-
-    def __get__(self, wrapper, type):
-        if wrapper is None:
-            return self.fieldname
-        else:
-            return self.access(wrapper, self.fieldname)
 
 class _OptionHandler(object):
     def __init__(self, options):
@@ -172,27 +163,6 @@ def schema(name, fields,
     for f,_ in fields:
         attrs[f] = ComfortableProperty(f, access_property)
     return type(name, (base,), attrs)
-
-## todo:refactoring
-class Dispatch(object):
-    ARGSPEC = "_argspec"
-    def __init__(self, tag, _tag_attr="_dispatch_tag"):
-        self.tag = tag
-        self._tag_attr = _tag_attr
-
-    def __call__(self, fn):
-        @functools.wraps(fn)
-        def wrapped(*args, **kwargs):
-            return fn(*args, **kwargs)
-        setattr(wrapped, self._tag_attr, self.tag)
-        setattr(wrapped, self.__class__.ARGSPEC, inspect.getargspec(fn))
-        return wrapped
-        
-    def is_tagged(self, fn):
-        return getattr(fn, self._tag_attr, None) == self.tag
-
-    def argspec(self, fn):
-        return getattr(fn, self.__class__.ARGSPEC)
 
 WithExtra = Dispatch("extra")
 Empty = object()

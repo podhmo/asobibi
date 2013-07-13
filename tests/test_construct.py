@@ -1,28 +1,5 @@
 import unittest
 
-class ComfortablePropertyTests(unittest.TestCase):
-    def _getTargetClass(self):
-        from asobibi import ComfortableProperty
-        class A(object):
-            def __init__(self, **kwargs):
-                self.data = kwargs
-            def square(o, k):
-                v = o.data[k]
-                return v * v
-            a = ComfortableProperty("a", square)
-        return A
-
-    def _makeOne(self, *args, **kwargs):
-        return self._getTargetClass()(*args, **kwargs)
-
-    def test_access_from_class(self):
-        target = self._getTargetClass()
-        self.assertEqual(target.a, "a")
-
-    def test_access_from_object(self):
-        target = self._makeOne(a=10)
-        self.assertEqual(target.a, 100)
-
 class SchemaFeatureTests(unittest.TestCase):
     def _getTarget(self):
         from asobibi import schema

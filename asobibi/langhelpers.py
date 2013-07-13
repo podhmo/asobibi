@@ -1,3 +1,6 @@
+import inspect
+import functools
+
 class SymbolPool(object):
     def __init__(self,*ks):
         for k in ks:
@@ -7,17 +10,51 @@ class SymbolPool(object):
     def __contains__(self, k):
         return k in self._reserved
 
+class ComfortableProperty(object):
+    def __init__(self, fieldname, access):
+        self.fieldname = fieldname
+        self.access = access
+
+    def __get__(self, wrapper, type):
+        if wrapper is None:
+            return self.fieldname
+        else:
+            return self.access(wrapper, self.fieldname)
+
+class Dispatch(object):
+    ARGSPEC = "_argspec"
+    def __init__(self, tag, _tag_attr="_dispatch_tag"):
+        self.tag = tag
+        self._tag_attr = _tag_attr
+
+    def __call__(self, fn):
+        @functools.wraps(fn)
+        def wrapped(*args, **kwargs):
+            return fn(*args, **kwargs)
+        setattr(wrapped, self._tag_attr, self.tag)
+        setattr(wrapped, self.__class__.ARGSPEC, inspect.getargspec(fn))
+        return wrapped
+        
+    def is_tagged(self, fn):
+        return getattr(fn, self._tag_attr, None) == self.tag
+
+    def argspec(self, fn):
+        return getattr(fn, self.__class__.ARGSPEC)
+
+
 def merged(d1, d2):
     for k, v in d2.iteritems():
         if not k in d1:
             val = v
         else:
             val = d1[k][:]
-            if hasattr(val, "append"):
-                if isinstance(v, (tuple, list)):
-                    val.extend(v)
-                else:
-                    val.append(v)
+            if isinstance(val, tuple):
+                val = list(val)
+
+            if hasattr(val, "append") and isinstance(v, (tuple, list)):
+                val.extend(v)
+            else:
+                val = v
         d1[k] = val
     return d1
     
