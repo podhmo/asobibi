@@ -129,7 +129,11 @@ def schema(name, fields,
             except except_errors as e:
                 result = self.on_failure(result, k, e)
         self.result = result
-        return self.errors is None
+
+        status = self.errors is None
+        if not status:
+            self.result = result.on_failure()
+        return status
 
     def get_data(self):
         if self.result is None:
