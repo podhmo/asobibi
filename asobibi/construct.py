@@ -68,10 +68,11 @@ def extract_message_from_exception(e):
     else:
         return e
 
-def extract_message_full(e):
+def extract_message_raw(e):
     return e
 
 def schema(name, fields, 
+           base=object, 
            missing=gennil, 
            opt_handler=_OptionHandler,
            except_errors=VALIDATION_ERRORS, 
@@ -170,7 +171,7 @@ def schema(name, fields,
         return self.get_data()[k]
     for f,_ in fields:
         attrs[f] = ComfortableProperty(f, access_property)
-    return type(name, (object,), attrs)
+    return type(name, (base,), attrs)
 
 ## todo:refactoring
 class Dispatch(object):
@@ -236,6 +237,7 @@ def lifted(fields, validate_fn):
     return fields, extra_fields, validate_fn, spec
 
 def validator(name, _converters,
+              base=object, 
               apply_dispatch=default_apply_dispatch,
               except_errors=VALIDATION_ERRORS):
 
@@ -284,7 +286,7 @@ def validator(name, _converters,
         return self.schema.on_failure(result, k, e)
 
     return type(name,
-                (object,),
+                (base,),
                 {"__init__": __init__,
                  "setup_check": setup_check, 
                  "_converters": converters,
