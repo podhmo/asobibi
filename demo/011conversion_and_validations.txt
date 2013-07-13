@@ -56,3 +56,37 @@ False
 'a'
 >>> s.errors
 defaultdict(<type 'list'>, {'x': ["invalid literal for int() with base 10: 'a'"]})
+
+
+
+
+# converters are called sequencially
+
+## stop, failed in the middle of the call-chain
+
+>>> F = c.validation_from_condition
+>>> S = schema("S", [("x", {Op.converters:[F(lambda x : x is not None), c.Int]})])
+
+>>> s = S(x="10")
+>>> s.validate()
+True
+>>> s.x
+10
+
+>>> s = S(x="a")
+>>> s.validate()
+False
+>>> s.errors
+defaultdict(<type 'list'>, {'x': ["invalid literal for int() with base 10: 'a'"]})
+
+>>> s = S(x=None)
+>>> s.validate()
+False
+>>> s.errors
+defaultdict(<type 'list'>, {'x': ['condition: <lambda>(None) is False']})
+
+>>> c.Int("", None)
+Traceback (most recent call last):
+    ...
+TypeError: int() argument must be a string or a number, not 'NoneType'
+
