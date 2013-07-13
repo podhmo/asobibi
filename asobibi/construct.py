@@ -211,7 +211,7 @@ def default_apply_dispatch(fn, ks, result, extra_ks, extra):
     else:
         return fn(ks[0], *(result[k] for k in ks))
 
-def lifted(fields, validate_fn):
+def normalize(fields, validate_fn):
     """some. validation. and [ks, validator] -> [ks, extra_ks, validator]"""
     if not isinstance(fields,(tuple,list)):
         fields = (fields,)
@@ -241,7 +241,7 @@ def validator(name, _converters,
               apply_dispatch=default_apply_dispatch,
               except_errors=VALIDATION_ERRORS):
 
-    converters = [lifted(fields, validate_fn) for fields, validate_fn in _converters]
+    converters = [normalize(fields, validate_fn) for fields, validate_fn in _converters]
 
     def __init__(self, schema, extra=Empty, setup_check=True):
         self.schema = schema
