@@ -36,7 +36,7 @@ class _OptionHandler(object):
 
     @classmethod
     def get_required(cls, options):
-        return options.get(Op.required,True) 
+        return options.get(Op.required, True) 
 
     @classmethod       
     def get_converters(cls, options):
@@ -97,7 +97,6 @@ def schema(name, fields,
         return result
 
     def on_validate(self, result, k, val, options):
-        result[k] = val
         for validator in opt_handler.get_converters(options):
             val = validator(k, val)
             ## field is schema
@@ -106,6 +105,8 @@ def schema(name, fields,
                     result = self.on_failure(result, k, val.errors)
                 val = val.result
             result[k] = val
+            if val is Nil:
+                break
         return result
 
     def validate(self):
@@ -117,11 +118,16 @@ def schema(name, fields,
     def _validate(self):
         result = Success()
         for k, options in fields:
+            required = opt_handler.get_required(options)
             try:
-                val = getitem_not_nil(self.rawdata, k)
-                result = self.on_validate(result, k, val, options)
+                if required:
+                    result[k] = val = getitem_not_nil(self.rawdata, k)
+                    result = self.on_validate(result, k, val, options)
+                else:
+                    result[k] = val = self.rawdata[k]
+                    if val is not Nil:
+                        result = self.on_validate(result, k, val, options)                        
             except KeyError as e:
-                required = opt_handler.get_required(options)
                 if required:
                     result = self.on_failure(result, k, e)
                 else:
