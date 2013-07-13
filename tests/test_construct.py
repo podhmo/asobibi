@@ -65,6 +65,27 @@ class SchemaFeatureTests(unittest.TestCase):
         self.assertEqual(result.x, 10)
         self.assertEqual(result.result["x"], 10)
 
+    ## validation option
+    def test_validate_multiple__always_True(self):
+        from asobibi import Op
+        Schema = self._getTarget()("Schema", [("x", {Op.required:True}), 
+                                              ("y", {Op.required:False})])
+        target = Schema(x="10")
+        self.assertTrue(target.validate())
+        self.assertTrue(target.result)
+        self.assertTrue(target.validate())
+        self.assertTrue(target.result)
+
+    def test_validate_multiple__always_False(self):
+        from asobibi import Op
+        Schema = self._getTarget()("Schema", [("x", {Op.required:True}), 
+                                              ("y", {Op.required:True})])
+        target = Schema(x="20")
+        self.assertFalse(target.validate())
+        self.assertFalse(target.result)
+        self.assertFalse(target.validate())
+        self.assertFalse(target.result)
+
     ## required option
 
     def test_validation_field_is_mandatory(self):
@@ -73,6 +94,7 @@ class SchemaFeatureTests(unittest.TestCase):
         Schema = self._getTarget()("Schema", [("x", {Op.required:True})])
         target = Schema()
         self.assertFalse(target.validate())
+        self.assertFalse(target.result)
         self.assertFalse(target.result["x"])
         self.assertEqual(target.result["x"], Nil)
 
@@ -83,6 +105,7 @@ class SchemaFeatureTests(unittest.TestCase):
         target = Schema()
         self.assertEqual(target.x, Nil)
         self.assertTrue(target.validate())
+        self.assertTrue(target.result)
         self.assertEqual(target.result["x"], Nil)
 
     def test_validation_field_is_optional__with_default(self):
@@ -91,6 +114,7 @@ class SchemaFeatureTests(unittest.TestCase):
         target = Schema()
         self.assertEqual(target.x, 0)
         self.assertTrue(target.validate())
+        self.assertTrue(target.result)
         self.assertEqual(target.result["x"], 0)
 
     def test_validation_field_is_optional__convert_is_disabled(self):
@@ -101,6 +125,7 @@ class SchemaFeatureTests(unittest.TestCase):
         Schema = self._getTarget()("Schema", [("x", {Op.required:False, Op.converters:[Int], Op.initial:0})])
         target = Schema()
         self.assertTrue(target.validate())
+        self.assertTrue(target.result)
         self.assertEqual(target.result["x"], 0)
 
     def test_validation_field_is_optional__with_invalid_value(self):
@@ -111,6 +136,7 @@ class SchemaFeatureTests(unittest.TestCase):
         Schema = self._getTarget()("Schema", [("x", {Op.required:False, Op.converters:[Int], Op.initial:0})])
         target = Schema(x="a")
         self.assertFalse(target.validate())
+        self.assertFalse(target.result)
         self.assertEqual(target.result["x"], "a")
 
     ## ordered data
@@ -229,7 +255,7 @@ class ValidatorExtraDataTests(unittest.TestCase):
         from asobibi import ValidationError
         def validation_with_extradata(_, x, y, z=0):
             if x*x+y*y != z*z:
-                raise ValidationError("not x^2 + y^2 == z^2 ({0} != {1})".format(x*x+y*y, z*z))
+                raise ValidationError({"fmt": "not x^2 + y^2 == z^2 ({0} != {1})".format(x*x+y*y, z*z)})
 
         return validator("Validator", 
                          [((Point.x, Point.y), WithExtra(validation_with_extradata))])
