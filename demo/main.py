@@ -55,6 +55,22 @@ submit = PasswordValidator(
 assert submit.validate() == False
 assert submit.errors.keys() == ["password"]
 
+## when optional, if validate candidates fields are optional then, registered validations are not called.
+Submit2 = schema(
+    "Submit", 
+    (Unicode("mail", initial="sample@mail", converters=[tiny_email]), 
+     Unicode("password", required=False), 
+     Unicode("confirm", required=False)
+ ))
+submit = PasswordValidator(
+    Submit2(mail="foo@bar.jp"))
+
+assert submit.validate() == True
+
+submit = PasswordValidator(
+    Submit2(mail="foo@bar.jp", password=None, confirm=None))
+
+assert submit.validate() == True
 
 ## composed schema
 
