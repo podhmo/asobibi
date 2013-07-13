@@ -19,15 +19,6 @@ Op = SymbolPool(
     "label"
 )
 
-class Missing(object):
-    def __nonzero__(self):
-        return False
-    def __init__(self,v):
-        self.v = v
-    def __repr__(self):
-        return '<%r %r>' % (self.__class__.__name__, self.v)
-
-
 def _field(name, **options):
     for k in options:
         if not k in Op:

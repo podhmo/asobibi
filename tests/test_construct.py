@@ -90,13 +90,13 @@ class SchemaFeatureTests(unittest.TestCase):
 
     def test_validation_field_is_mandatory(self):
         from asobibi import Op
-        from asobibi import Nil
+        from asobibi.structure import Missing
         Schema = self._getTarget()("Schema", [("x", {Op.required:True})])
         target = Schema()
         self.assertFalse(target.validate())
         self.assertFalse(target.result)
         self.assertFalse(target.result["x"])
-        self.assertEqual(target.result["x"], Nil)
+        self.assertEqual(str(target.result["x"]), str(Missing("x")))
 
     def test_validation_field_is_optional(self):
         from asobibi import Op
