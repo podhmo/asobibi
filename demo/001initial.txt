@@ -1,0 +1,45 @@
+>>> from asobibi import schema
+>>> from asobibi import Op, Nil
+>>> import asobibi.converters as c
+
+## definition
+
+>>> XY = schema("XY", [("x", {Op.converters:[c.Int]}),("y", {Op.converters:[c.Int]})])
+
+## success case
+>>> pt = XY(x="1", y="2")
+>>> pt.validate()
+True
+>>> pt.x
+1
+>>> pt.y
+2
+>>> pt.result
+<'Success': [('x', 1), ('y', 2)]>
+
+### enable to receive dict
+>>> pt = XY(dict(x="1", y="2"))
+>>> pt.validate()
+True
+>>> pt.result
+<'Success': [('x', 1), ('y', 2)]>
+
+## failure case
+>>> pt = XY()
+>>> pt.validate()
+False
+>>> pt.errors
+defaultdict(<type 'list'>, {'y': ['y is Missing.'], 'x': ['x is Missing.']})
+
+## prevalidation
+>>> pt = XY(x=1,y="2")
+>>> pt.x 
+1
+>>> pt.y 
+'2'
+
+>>> pt = XY()
+>>> str(pt.x)
+'<Nil>'
+>>> bool(Nil)
+False

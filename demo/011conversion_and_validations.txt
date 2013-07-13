@@ -1,0 +1,58 @@
+>>> from asobibi import schema
+>>> from asobibi import Op, Nil
+>>> import asobibi.converters as c
+
+
+# converters means "Validation" or "Converstion"
+
+## Validation, asseration + return recived raw-value
+>>> def positive(field_name, value):
+...     assert value >= 0
+...     return value
+...
+
+>>> S = schema("S", [("x", {Op.converters:[positive]})])
+>>> s = S(x=-10)
+>>> s.validate()
+False
+>>> s.result
+<'Failure': [('x', -10)]>
+>>> s.errors
+defaultdict(<type 'list'>, {'x': ['']})
+
+
+
+### a short cut function is exists.
+>>> positive2 = c.validation_from_condition(lambda x : x >= 0)
+>>> S = schema("S", [("x", {Op.converters:[positive2]})])
+
+>>> S(x=10).validate()
+True
+
+>>> s = S(x=-20)
+>>> s.validate()
+False
+>>> s.errors
+defaultdict(<type 'list'>, {'x': ['condition: <lambda>(-20) is False']})
+
+
+
+## Conversion, receive field name and one input and return converted value
+
+>>> def int_from_string(k, string):
+...     return int(string)
+
+>>> S = schema("S", [("x", {Op.converters:[int_from_string]})])
+>>> s = S(x="-10")
+>>> s.validate()
+True
+>>> s.x
+-10
+
+>>> s = S(x="a")
+>>> s.validate()
+False
+>>> s.x
+'a'
+>>> s.errors
+defaultdict(<type 'list'>, {'x': ["invalid literal for int() with base 10: 'a'"]})
