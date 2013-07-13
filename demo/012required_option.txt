@@ -1,0 +1,57 @@
+>>> from asobibi import schema
+>>> from asobibi import Op, Nil
+>>> import asobibi.converters as c
+
+
+# about required option
+
+## default is required True
+
+>>> S = schema("S", [("x", {Op.converters:[c.Unicode]})])
+>>> s = S()
+>>> s.validate()
+False
+>>> s.errors
+defaultdict(<type 'list'>, {'x': ['x is Missing.']})
+
+>>> S = schema("S", [("x", {Op.converters:[c.Unicode], Op.required:True})])
+>>> s = S()
+>>> s.validate()
+False
+>>> s.errors
+defaultdict(<type 'list'>, {'x': ['x is Missing.']})
+
+## if required = False, then this field is optional.
+
+>>> S = schema("S", [("x", {Op.converters:[c.Unicode], Op.required:False})])
+>>> s = S()
+>>> s.validate()
+True
+>>> s.x == Nil
+True
+
+
+### add converters, when you want empty-string ("") to treat like a Nil
+
+>>> def empty_is_nil(k, x):
+...     return Nil if x == "" else x
+>>> S = schema("S", [("x", {Op.converters:[empty_is_nil, c.Unicode], Op.required:False})])
+
+>>> s = S(x="")
+>>> s.validate()
+True
+>>> s.x == Nil
+True
+
+>>> s = S()
+>>> s.validate()
+True
+>>> s.x == Nil
+True
+
+>>> s = S(x=None)
+>>> s.validate()
+True
+>>> s.x
+u'None'
+
