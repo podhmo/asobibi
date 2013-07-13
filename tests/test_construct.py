@@ -445,7 +445,6 @@ class ComplexSchemaTests(unittest.TestCase):
                            "address_1": "chiyoda 1-1", 
                            "address_2": None}
                       })
-    
 
 if __name__ == "__main__":
     unittest.main()

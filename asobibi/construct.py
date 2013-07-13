@@ -84,6 +84,7 @@ def schema(name, fields,
         self.rawdata = rawdata
         self.result = None
         self.errors = None
+        self._configured = False #I hate this. want to remove.
 
     def on_failure(self, result, k, e):
         if self.errors is None:
@@ -106,6 +107,12 @@ def schema(name, fields,
         return result
 
     def validate(self):
+        if not self._configured:
+            self.result = self._validate()
+            self._configured = True
+        return not self.errors
+    
+    def _validate(self):
         result = Success()
         for k, options in fields:
             try:
@@ -119,12 +126,7 @@ def schema(name, fields,
                     result[k] = self.rawdata[k]
             except except_errors as e:
                 result = self.on_failure(result, k, e)
-        self.result = result
-
-        status = self.errors is None
-        if not status:
-            self.result = result.on_failure()
-        return status
+        return result
 
     def get_data(self):
         if self.result is None:
@@ -157,6 +159,7 @@ def schema(name, fields,
              "field_keys": field_keys, 
              "on_validate": on_validate, 
              "on_failure": on_failure,
+             "_validate": _validate, 
              "validate": validate}
 
     def access_property(self, k):
