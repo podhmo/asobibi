@@ -1,4 +1,5 @@
 from functools import wraps
+from .exceptions import ValidationError
 
 def Int(k, val):
     return int(val)
@@ -14,3 +15,20 @@ def as_converter(schema):
     def converter(k, *args, **kwargs):
         return schema(*args, **kwargs)
     return converter
+
+def as_validation(fn):
+    @wraps(fn)
+    def validate(k, x):
+        fn(k, x)
+        return x
+    return validate
+
+def validation_from_condition(cond):
+    @wraps(cond)
+    def validate(k, value):
+        result = cond(value)
+        if not result:
+            fmt="condition: {condition}({value!r}) is {result}"
+            raise ValidationError(dict(fmt=fmt, field=k, result=result, value=value, condition=cond.__name__))
+        return value
+    return validate

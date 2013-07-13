@@ -2,6 +2,7 @@ import inspect
 import functools
 from collections import defaultdict
 from langhelpers import SymbolPool
+from langhelpers import mergeable
 from .structure import gennil, getitem_not_nil
 from .structure import Success
 from .exceptions import (
@@ -25,6 +26,15 @@ class Missing(object):
         self.v = v
     def __repr__(self):
         return '<%r %r>' % (self.__class__.__name__, self.v)
+
+
+def _field(name, **options):
+    for k in options:
+        if not k in Op:
+            raise ConstructionError("{0} is not reserved in Op ({0})".format(Op))
+    return (name, options)
+
+field = mergeable(_field).merged
 
 ## todo:rename
 class ComfortableProperty(object):
@@ -58,18 +68,13 @@ class _OptionHandler(object):
             return on_missing(e)
 
 VALIDATION_ERRORS = (AssertionError, TypeError, ValueError, ValidationError)
-
 # hmm
 def extract_message_from_exception(e):
-    return ", ".join(e.args) if hasattr(e, "args") else e
+    # return ", ".join(e.args) if hasattr(e, "args") else e
+    return str(e)
+
 def extract_message_full(e):
     return e
-
-def field(name, **options):
-    for k in options:
-        if not k in Op:
-            raise ConstructionError("{0} is not reserved in Op ({0})".format(Op))
-    return (name, options)
 
 def schema(name, fields, 
            missing=gennil, 

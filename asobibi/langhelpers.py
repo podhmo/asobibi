@@ -39,6 +39,17 @@ class mergeable(object):
         original = merged(self.kwargs.copy(), kwargs)
         return self.fn(*args_, **original)
 
+def compose_rl(*fns):
+    def wrapped(*args, **kwargs):
+        rfns = reversed(fns)
+        v = rfns.next()(*args, **kwargs)
+        for f in rfns:
+            v = f(v)
+        return v
+    return wrapped
+compose = compose_rl
+
+
 def flatten_dict(D, delimiter=".", factory=dict, result=None):
     result = factory()
     for k in D:
