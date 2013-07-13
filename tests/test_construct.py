@@ -73,8 +73,10 @@ class SchemaFeatureTests(unittest.TestCase):
         target = Schema(x="10")
         self.assertTrue(target.validate())
         self.assertTrue(target.result)
+        self.assertIsNone(target.errors)
         self.assertTrue(target.validate())
         self.assertTrue(target.result)
+        self.assertIsNone(target.errors)
 
     def test_validate_multiple__always_False(self):
         from asobibi import Op
@@ -83,8 +85,12 @@ class SchemaFeatureTests(unittest.TestCase):
         target = Schema(x="20")
         self.assertFalse(target.validate())
         self.assertFalse(target.result)
+
+        import copy
+        _errors = copy.deepcopy(dict(target.errors.copy()))
         self.assertFalse(target.validate())
         self.assertFalse(target.result)
+        self.assertEquals(dict(target.errors), _errors)
 
     ## required option
 
