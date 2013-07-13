@@ -3,15 +3,13 @@ import functools
 from collections import defaultdict
 from langhelpers import SymbolPool
 from .structure import gennil, getitem_not_nil
+from .structure import Success
+from .exceptions import (
+    ConstructionError,
+    ValidationError,
+    InitializeError
+)
 
-class ConstructionError(Exception):
-    pass
-
-class InitializeError(Exception):
-    pass
-
-class ValidationError(Exception):
-    pass
 
 Op = SymbolPool(
     "initial",
