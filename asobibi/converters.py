@@ -23,12 +23,11 @@ def as_validation(fn):
         return x
     return validate
 
-def validation_from_condition(cond):
+def validation_from_condition(cond, fmt="condition: {condition}({value!r}) is {result}"):
     @wraps(cond)
     def validate(k, value):
         result = cond(value)
         if not result:
-            fmt="condition: {condition}({value!r}) is {result}"
             raise ValidationError(dict(fmt=fmt, field=k, result=result, value=value, condition=cond.__name__))
         return value
     return validate

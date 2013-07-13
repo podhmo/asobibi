@@ -35,14 +35,9 @@ class Success(GentleDictMixin, OrderedDict):
 class _Nil(object):
     def __nonzero__(self):
         return False
+    def __str__(self):
+        return "<Nil>"
 def gennil(*args, **kwargs):
     return Nil
 
 Nil = _Nil()
-
-def getitem_not_nil(D, k):
-    val = D[k]
-    if val is Nil:
-        raise KeyError("{0} ({1} is found)".format(k, Nil))
-    return val
-

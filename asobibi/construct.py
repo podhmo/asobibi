@@ -6,7 +6,7 @@ from langhelpers import (
     ComfortableProperty, 
     Dispatch
 )
-from .structure import gennil, getitem_not_nil
+from .structure import gennil, Nil
 from .structure import Success
 from .exceptions import (
     ConstructionError,
@@ -61,6 +61,12 @@ def extract_message_from_exception(e):
 
 def extract_message_raw(e):
     return e
+
+def getitem_not_nil(D, k):
+    val = D[k]
+    if val is Nil:
+        raise ValidationError(dict(fmt="{field} is Missing.", field=k, value=val))
+    return val
 
 def schema(name, fields, 
            base=object, 
