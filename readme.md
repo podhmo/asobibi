@@ -1,3 +1,12 @@
+## feature
+
+* support iteration, in definition order
+* enable to register multiple value target validations
+** if target field is optional, iff has truethy value called registered
+* wrapping by decorator, multiply times
+* validater and converter is same.
+* compound schema
+
 sample code
 
 ```
