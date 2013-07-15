@@ -55,3 +55,43 @@ True
 >>> s.x
 u'None'
 
+
+
+# about initial option
+
+## prevalidate, default is Nil
+
+>>> S = schema("S", [("x", {Op.converters:[c.Int]})])
+>>> S().x == Nil
+True
+
+>>> S = schema("S", [("x", {Op.converters:[c.Int],Op.required:False})])
+>>> S().x == Nil
+True
+
+## initial option exists used it.
+
+>>> S = schema("S", [("x", {Op.converters:[c.Int],Op.initial:0})])
+>>> S().x
+0
+
+>>> S = schema("S", [("x", {Op.converters:[c.Int],Op.required:False,Op.initial:0})])
+>>> S().x
+0
+
+
+## after validate
+
+>>> S = schema("S", [("x", {Op.converters:[c.Int],Op.initial:0})])
+>>> s = S()
+>>> s.validate()
+True
+>>> s.x
+<'Success': [('x', 0)]>
+
+>>> S = schema("S", [("x", {Op.converters:[c.Int],Op.initial:0,Op.required:False})])
+>>> s = S()
+>>> s.validate()
+True
+>>> s.result
+<'Success': [('x', 0)]>
