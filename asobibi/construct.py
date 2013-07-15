@@ -240,13 +240,14 @@ def validator(name, _converters,
                     raise InitializeError("'{0}' is not found in extra. ({1})".format(k, spec))
 
     def validate(self):
-        status = self.schema.validate()
-        return status and self._validate()
+        nested_status = self.schema.validate()
+        status = self._validate()
+        return nested_status and status
 
     def _validate(self):
         result = self.result
         for fields, extra_fields, validator, _ in converters:
-            if all(result.get(k,False) for k in fields):
+            if all(result.get(k, Nil) != Nil for k in fields):
                 try:
                     apply_dispatch(validator, fields, result, extra_fields, self.extra)
                 except except_errors as e:

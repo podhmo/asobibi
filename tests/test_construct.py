@@ -363,6 +363,23 @@ class NestedValidatorTests(unittest.TestCase):
         self.assertEquals(point.result["x"],1)
         self.assertEquals(point.result["y"],2)
 
+    def test_nested_validator__all(self):
+        from asobibi import validator, ValidationError
+        Schema = self._get_schema()
+        def odd(k, x):
+            if x % 2 != 1:
+                raise ValidationError(dict(fmt="not odd, {field}", field=k))
+        point = self._get_schema()(x="10",y="20")
+        point = self._get_validator__bigger()(point)
+        point = self._get_validator__ordered()(point)
+        point = validator("Vx", [(Schema.x, odd)])(point)
+        point = validator("Vy", [(Schema.y, odd)])(point)
+
+        self.assertFalse(point.validate())
+        self.assertFalse(point.result)
+        self.assertEquals(dict(point.errors), 
+                          {'y': ['not odd, y'], 'x': ['not odd, x']})
+
 class ComplexSchemaTests(unittest.TestCase):
     def _getComplexSchema(self):
         from asobibi import schema

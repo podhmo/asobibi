@@ -1,0 +1,65 @@
+>>> from asobibi import schema
+>>> from asobibi import Op, Nil
+>>> import asobibi.converters as c
+>>> from asobibi import validator
+
+# wrapping schema by validator
+
+>>> from asobibi.exceptions import ValidationError
+>>> from asobibi import field
+>>> Unicode = field(converters=[c.Unicode])
+>>> Submit = schema(
+...     "Submit", 
+...     (Unicode("name"), 
+...      Unicode("password"), 
+...      Unicode("confirm")
+...  ))
+
+
+>>> def same(k, x, y):
+...     if x != y:
+...         raise ValidationError(dict(fmt="{x} != {y}", x=x, y=y))
+
+>>> SameValidator = validator("SameValidator", [((Submit.password,Submit.confirm), same)])
+
+### novalidator
+>>> s = Submit(name="foo", password="aaaa", confirm="bbbb")
+>>> s.validate()
+True
+
+### add validator
+>>> s = SameValidator(Submit(name="foo", password="aaaa", confirm="bbbb"))
+>>> s.validate()
+False
+>>> s.errors
+defaultdict(<type 'list'>, {'password': ['aaaa != bbbb']})
+
+
+## support multi validator wrapping
+>>> def not_empty_string(k,x):
+...     if x == "":
+...         raise ValidationError(dict(fmt="{field} is empty string.", field=k, value=x))
+>>> DontEmpty0 = validator("V0", [(Submit.password, not_empty_string)])
+>>> DontEmpty1 = validator("V1", [(Submit.confirm, not_empty_string)])
+>>> DontEmpty2 = validator("V2", [(Submit.name, not_empty_string)])
+>>> s = DontEmpty2(DontEmpty1(DontEmpty0(SameValidator(Submit(name="",password="",confirm="")))))
+>>> s.validate()
+False
+>>> s.errors
+defaultdict(<type 'list'>, {'password': ['password is empty string.'], 'name': ['name is empty string.'], 'confirm': ['confirm is empty string.']})
+
+
+
+## with required=False, iff matched candidates found, calling registered validator
+
+>>> Optional = Unicode.merged(required=False)
+>>> OSubmit = schema("OSubmit", [Unicode("name"), Optional("password"), Optional("confirm")])
+>>> s = SameValidator(OSubmit(name="foo", password="@"))
+>>> s.validate()
+True
+>>> s = SameValidator(OSubmit(name="foo", confirm="@"))
+>>> s.validate()
+True
+>>> s = SameValidator(OSubmit(name="foo", password="@", confirm="*"))
+>>> s.validate()
+False

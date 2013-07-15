@@ -4,7 +4,7 @@
 * enable to register multiple value target validations
 ** if target field is optional, iff has truethy value called registered
 * wrapping by decorator, multiply times
-* validater and converter is same.
+* validator and converter is same.
 * compound schema
 
 sample code
