@@ -75,10 +75,11 @@ def schema(name, fields,
            except_errors=VALIDATION_ERRORS, 
            extract_message=extract_message_from_exception):
     field_keys = [f for f, _ in fields]
-    def __init__(self, _data=None, **data):
+    def __init__(self, _data=None, _fields=None, **data):
+        self._fields = _fields or self.__class__._fields
         rawdata = _data.copy() if _data else {}
         rawdata.update(data)
-        for k, options in fields:
+        for k, options in self._fields:
             try:
                 rawdata[k]
             except KeyError as e:
@@ -87,6 +88,18 @@ def schema(name, fields,
         self.result = None
         self.errors = None
         self._configured = False #I hate this. want to remove.
+
+    @classmethod
+    def partial(cls, _data=None, **kwargs):
+        _fields = []
+        if _data:
+            _data.update(kwargs)
+        else:
+            _data = kwargs
+        for k, options in cls._fields:
+            if k in kwargs:
+                _fields.append((k, options))
+        return cls(_data=_data, _fields=_fields)
 
     def on_failure(self, result, k, e):
         if self.errors is None:
@@ -117,7 +130,7 @@ def schema(name, fields,
     
     def _validate(self):
         result = Success()
-        for k, options in fields:
+        for k, options in self._fields:
             required = opt_handler.get_required(options)
             try:
                 if required:
@@ -162,6 +175,7 @@ def schema(name, fields,
              "rawdata_iter": rawdata_iter,
              "result_iter": result_iter,
              "__init__": __init__,
+             "partial": partial, 
              "get_data": get_data, 
              "_fields": fields,
              "field_keys": field_keys, 

@@ -139,6 +139,23 @@ class SchemaFeatureTests(unittest.TestCase):
         self.assertEquals(list(result.result_iter()),[1,10,2,20,3])
         self.assertEquals(list(result),[1,10,2,20,3])
       
+class SchemaPartialTests(unittest.TestCase):
+    def _getTarget(self):
+        from asobibi import schema
+        return schema
+        
+    def test_it(self):
+        schema = self._getTarget()
+        Schema = schema("Schema", [("a", {}), ("b", {}), ("c", {}), ("d", {})])
+
+        complete = Schema(a=1)
+        self.assertFalse(complete.validate())
+        
+        partial = Schema.partial(a=1)
+        self.assertTrue(partial.validate())
+        self.assertEquals(dict(partial.result), {"a": 1})
+        
+
 class ValidatorExtraDataTests(unittest.TestCase):
     def _get_schema(self):
         from asobibi import schema
