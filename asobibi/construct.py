@@ -60,7 +60,7 @@ class ErrorList(dict):
             yield k, [str(v) for v in vs]
     def iterate_items_for_display(self):
         for k, vs in self.items():
-            yield k, [str(v) for v in vs]
+            yield k, [unicode(v) for v in vs]
 
     def __unicode__(self):
         return unicode(dict(self.iterate_items_for_display()))

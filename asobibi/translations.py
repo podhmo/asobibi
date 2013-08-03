@@ -18,7 +18,8 @@ class NotFound(Exception):
     pass
 class MessageStringNotFound(NotFound):
     pass
-
+class RegisterMessageStringError(Exception):
+    pass
 
 class MessageString(namedtuple("MessageString", "fmt, mapping")):
     def __call__(self, mapping=None):
@@ -56,6 +57,11 @@ def register(category, lang, name, fmt, mapping, force=False):
     registry = get_registry(category)[lang]
     if not force and name in registry:
         warning("{name} is already registered(category={category})".format(name=name, category=category))
+    ## validation
+    try:
+        fmt.format(**mapping)
+    except KeyError as e:
+        raise RegisterMessageStringError("fmt='{fmt}' needs {k}".format(fmt=fmt, k=e))
     s = registry[name] = MessageString(fmt, mapping)
     return s
 
