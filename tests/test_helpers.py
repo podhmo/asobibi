@@ -1,5 +1,29 @@
 import unittest
 
+
+class ChainMapViewTests(unittest.TestCase):
+    def _getTargetClass(self):
+        from asobibi.structure import ChainMapView
+        return ChainMapView
+
+    def _makeOne(self, *args, **kwargs):
+        return self._getTargetClass()(*args, **kwargs)
+
+    def test_it(self):
+        D0 = {"a": 1, "b": 2}
+        D1 = {"b": 3, "c": 3}
+        target = self._makeOne(D0, D1)
+        self.assertEqual(target["a"], 1)
+        self.assertEqual(target["b"], 2)
+        self.assertEqual(target["c"], 3)
+        
+        with self.assertRaises(KeyError):
+            target["missing-key"]
+            
+        self.assertEqual(len(target), 3)
+        self.assertEqual(dict(target), {"a": 1, "b": 2, "c": 3})
+        
+
 class ComfortablePropertyTests(unittest.TestCase):
     def _getTargetClass(self):
         from asobibi import ComfortableProperty

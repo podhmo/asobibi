@@ -1,5 +1,4 @@
 import inspect
-from collections import defaultdict
 from langhelpers import (
     SymbolPool, 
     mergeable, 
@@ -13,7 +12,6 @@ from .exceptions import (
     ValidationError,
     InitializeError
 )
-
 
 Op = SymbolPool(
     "initial",
@@ -50,30 +48,31 @@ class _OptionHandler(object):
             return on_missing(e)
 
 VALIDATION_ERRORS = (AssertionError, TypeError, ValueError, ValidationError)
-# hmm
-def extract_message_from_exception(e):
-    if isinstance(e, (str, unicode)):
-        return e
-    elif isinstance(e, Exception):
-        return str(e)
-    else:
-        return e
-
-def extract_message_raw(e):
-    return e
-
 def getitem_not_nil(D, k):
     val = D[k]
     if val is Nil:
         raise ValidationError(dict(fmt="{field} is Missing.", field=k, value=val))
     return val
 
+class ErrorList(dict):
+    def iterate_items_for_system(self):
+        for k, vs in self.items():
+            yield k, [str(v) for v in vs]
+    def iterate_items_for_display(self):
+        for k, vs in self.items():
+            yield k, [str(v) for v in vs]
+
+    def __unicode__(self):
+        return unicode(dict(self.iterate_items_for_display()))
+
+    def __str__(self):
+        return "{0!r} : {1}".format(self.__class__.__name__, dict(self.iterate_items_for_system()))
+
 def schema(name, fields, 
            base=object, 
            missing=gennil, 
            opt_handler=_OptionHandler,
-           except_errors=VALIDATION_ERRORS, 
-           extract_message=extract_message_from_exception):
+           except_errors=VALIDATION_ERRORS):
     field_keys = [f for f, _ in fields]
     def __init__(self, _data=None, _fields=None, **data):
         self._fields = _fields or self.__class__._fields
@@ -105,8 +104,10 @@ def schema(name, fields,
         if self.errors is None:
             result = result.on_failure()
         if not self.errors:
-            self.errors = defaultdict(list)
-        self.errors[k].append(extract_message(e))
+            self.errors = ErrorList()
+        if not k in self.errors:
+            self.errors[k] = []
+        self.errors[k].append(e)
         return result
 
     def on_validate(self, result, k, val, options):

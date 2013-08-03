@@ -57,6 +57,7 @@ class SchemaFeatureTests(unittest.TestCase):
 
     def test_validate_multiple__always_False(self):
         from asobibi import Op
+        from asobibi.construct import ErrorList
         Schema = self._getTarget()("Schema", [("x", {Op.required:True}), 
                                               ("y", {Op.required:True})])
         target = Schema(x="20")
@@ -67,7 +68,7 @@ class SchemaFeatureTests(unittest.TestCase):
         _errors = copy.deepcopy(dict(target.errors.copy()))
         self.assertFalse(target.validate())
         self.assertFalse(target.result)
-        self.assertEquals(dict(target.errors), _errors)
+        self.assertEquals(str(target.errors), str(ErrorList(_errors)))
 
     ## required option
 
@@ -279,18 +280,20 @@ class ValidatorExtraDataTests(unittest.TestCase):
         self.assertTrue(point.validate())
 
     def test_validate__with_extra_data__failure(self):
+        from asobibi.construct import ErrorList
         Point = self._get_schema__point()
         point = Point(x=3, y=10)
         point = self._get_validator__with_extra_data(Point)(point, 5)
         self.assertFalse(point.validate())
-        self.assertEquals(point.errors, {"x": ['not x^2 + y^2 == z^2 (109 != 25)']})
+        self.assertEquals(str(point.errors), str(ErrorList({"x": ['not x^2 + y^2 == z^2 (109 != 25)']})))
 
     def test_validate__with_extra_data__missing_arguments(self): #xxx:
+        from asobibi.construct import ErrorList
         Point = self._get_schema__point()
         point = Point(x=3, y=10)
         point = self._get_validator__with_extra_data(Point)(point)
         self.assertFalse(point.validate())
-        self.assertEquals(point.errors, {"x": ['not x^2 + y^2 == z^2 (109 != 0)']})
+        self.assertEquals(str(point.errors), str(ErrorList({"x": ['not x^2 + y^2 == z^2 (109 != 0)']})))
 
 
 class NestedValidatorTests(unittest.TestCase):
@@ -382,6 +385,7 @@ class NestedValidatorTests(unittest.TestCase):
 
     def test_nested_validator__all(self):
         from asobibi import validator, ValidationError
+        from asobibi.construct import ErrorList
         Schema = self._get_schema()
         def odd(k, x):
             if x % 2 != 1:
@@ -394,8 +398,8 @@ class NestedValidatorTests(unittest.TestCase):
 
         self.assertFalse(point.validate())
         self.assertFalse(point.result)
-        self.assertEquals(dict(point.errors), 
-                          {'y': ['not odd, y'], 'x': ['not odd, x']})
+        self.assertEquals(str(point.errors), 
+                          str(ErrorList({'y': ['not odd, y'], 'x': ['not odd, x']})))
 
 class ComplexSchemaTests(unittest.TestCase):
     def _getComplexSchema(self):

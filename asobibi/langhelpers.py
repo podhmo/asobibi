@@ -1,5 +1,11 @@
+import sys
 import inspect
 import functools
+
+def warning(message):
+    sys.stderr.write("warning: ")
+    sys.stderr.write(message)
+    sys.stderr.write("\n")
 
 class SymbolPool(object):
     def __init__(self,*ks):

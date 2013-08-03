@@ -1,4 +1,39 @@
 from collections import OrderedDict
+from collections import Mapping
+
+_dummy = object()
+class ChainMapView(Mapping):
+    def __init__(self, *candidates):
+        self.candidates = candidates
+        self.size = None
+        self.ks = None
+
+    def __getitem__(self, k):
+        for c in self.candidates:
+            v = c.get(k, _dummy)
+            if not v is _dummy:
+                return v
+        raise KeyError(k)
+
+    def configure(self):
+        self.ks = ks = set()
+        for c in self.candidates:
+            for k in c:
+                if k in ks:
+                    continue
+                ks.add(k)
+        self.size = len(self.ks)
+
+    def __iter__(self):
+        if self.size is None:
+            self.configure()
+        for k in self.ks:
+            yield k
+
+    def __len__(self):
+        if self.size is None:
+            self.configure()
+        return self.size
 
 class GentleDictMixin(object):
     def __repr__(self):
