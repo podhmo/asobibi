@@ -21,7 +21,9 @@ class MessageStringNotFound(NotFound):
 
 
 class MessageString(namedtuple("MessageString", "fmt, mapping")):
-    def __call__(self, mapping):
+    def __call__(self, mapping=None):
+        if mapping is None:
+            return self.fmt.format(**self.mapping)
         return self.fmt.format(**ChainMapView(mapping, self.mapping))
 
 def get_registry(category=None):
