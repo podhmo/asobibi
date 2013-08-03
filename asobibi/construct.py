@@ -51,7 +51,7 @@ VALIDATION_ERRORS = (AssertionError, TypeError, ValueError, ValidationError)
 def getitem_not_nil(D, k):
     val = D[k]
     if val is Nil:
-        raise ValidationError(dict(fmt="{field} is Missing.", field=k, value=val))
+        raise ValidationError(dict(name="*missing", field=k, value=val))
     return val
 
 class ErrorList(dict):

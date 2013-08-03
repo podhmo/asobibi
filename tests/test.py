@@ -19,12 +19,16 @@ class Test(unittest.TestCase):
         StrictUnicode = field(converters=[strict_unicode])
         Person = schema("Person", [StrictUnicode("first_name"), StrictUnicode("last_name")])
 
-        ## failure
+
         person = Person()
         self.assertFalse(person.validate())
         self.assertEquals(str(person.errors), 
                           str(ErrorList({'first_name': ['first_name is Missing.'], 
                                          'last_name': ['last_name is Missing.']})))
+        self.assertEquals(unicode(person.errors), 
+                          unicode(ErrorList({'first_name': [u'first_name がみつかりません'], 
+                                             'last_name': [u'last_name がみつかりません']})))
+
 
         person = Person(first_name="test", last_name="")
         self.assertFalse(person.validate())

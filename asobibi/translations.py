@@ -77,3 +77,7 @@ def get_display_message_factory(category=None, lang=None):
     
 SystemMessage = get_system_message_factory()
 DisplayMessage = get_display_message_factory()
+
+DUMMY_STRING = "----"
+SystemMessage("*missing", "{field} is Missing.", mapping={"field": DUMMY_STRING})
+DisplayMessage("*missing", u"{field} がみつかりません", mapping={"field": DUMMY_STRING})
