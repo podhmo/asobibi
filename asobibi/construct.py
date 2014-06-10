@@ -5,6 +5,7 @@ from .langhelpers import (
     ComfortableProperty,
     Dispatch
 )
+from functools import partial
 from .structure import gennil, Nil
 from .structure import Success
 from .compat import text_
@@ -22,13 +23,31 @@ Op = SymbolPool(
 )
 
 
+class IncrementCounter(object):
+    def __init__(self):
+        self.i = 0
+
+    def __call__(self):
+        self.i += 1
+        return self.i
+
+
+_column_counter = IncrementCounter()
+
+
 def _field(name, **options):
     for k in options:
-        if not k in Op:
+        if k not in Op:
             raise ConstructionError("{0} is not reserved in Op ({0})".format(Op))
     return (name, options)
 
 field = mergeable(_field).merged
+
+
+def column(fn, **options):
+    g = partial(fn, **options)
+    g._column_count = _column_counter()
+    return g
 
 
 class _OptionHandler(object):
@@ -62,7 +81,6 @@ def getitem_not_nil(D, k):
 
 
 class ErrorList(dict):
-
     def iterate_items_for_system(self):
         for k, vs in self.items():
             yield k, [str(v) for v in vs]
@@ -72,7 +90,7 @@ class ErrorList(dict):
             yield k, [text_(v) for v in vs]
 
     def __unicode__(self):
-        return unicode(dict(self.iterate_items_for_display()))
+        return text_(dict(self.iterate_items_for_display()))
 
     def __str__(self):
         return "{0!r} : {1}".format(self.__class__.__name__, dict(self.iterate_items_for_system()))
@@ -83,6 +101,7 @@ def schema(name, fields,
            missing=gennil,
            opt_handler=_OptionHandler,
            except_errors=VALIDATION_ERRORS):
+
     field_keys = [f for f, _ in fields]
 
     def __init__(self, _data=None, _fields=None, **data):
@@ -116,7 +135,7 @@ def schema(name, fields,
             result = result.on_failure()
         if not self.errors:
             self.errors = ErrorList()
-        if not k in self.errors:
+        if k not in self.errors:
             self.errors[k] = []
         self.errors[k].append(e)
         return result
@@ -124,7 +143,7 @@ def schema(name, fields,
     def on_validate(self, result, k, val, options):
         for validator in opt_handler.get_converters(options):
             val = validator(k, val)
-            ## field is schema
+            # field is schema
             if hasattr(val, "validate"):
                 if not val.validate():
                     result = self.on_failure(result, k, val.errors)
@@ -200,6 +219,23 @@ def schema(name, fields,
     for f, _ in fields:
         attrs[f] = ComfortableProperty(f, access_property)
     return type(name, (base,), attrs)
+
+
+def as_schema(missing=gennil,
+              opt_handler=_OptionHandler,
+              except_errors=VALIDATION_ERRORS):
+    def wrapper(cls):
+        xs = []
+        for name, f in cls.__dict__.items():
+            if hasattr(f, "_column_count"):
+                xs.append((f._column_count, f(name)))
+        fields = [v for _, v in sorted(xs, key=lambda x: x[0])]
+        return schema(name, fields, cls.__mro__[0],
+                      missing=missing,
+                      opt_handler=opt_handler,
+                      except_errors=except_errors)
+    return wrapper
+
 
 WithExtra = Dispatch("extra")
 Empty = object()
