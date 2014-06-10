@@ -1,6 +1,6 @@
 from functools import wraps
 from .exceptions import ValidationError
-
+from .compat import text_, bytes_
 
 def Int(k, val):
     return int(val)
@@ -11,11 +11,11 @@ def Float(k, val):
 
 
 def String(k, val):
-    return str(val)
+    return bytes_(val)
 
 
 def Unicode(k, val):
-    return unicode(val)
+    return text_(val)
 
 
 def as_converter(schema):

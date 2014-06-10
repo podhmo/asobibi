@@ -1,5 +1,5 @@
 import inspect
-from langhelpers import (
+from .langhelpers import (
     SymbolPool,
     mergeable,
     ComfortableProperty,
@@ -7,6 +7,7 @@ from langhelpers import (
 )
 from .structure import gennil, Nil
 from .structure import Success
+from .compat import text_
 from .exceptions import (
     ConstructionError,
     ValidationError,
@@ -68,7 +69,7 @@ class ErrorList(dict):
 
     def iterate_items_for_display(self):
         for k, vs in self.items():
-            yield k, [unicode(v) for v in vs]
+            yield k, [text_(v) for v in vs]
 
     def __unicode__(self):
         return unicode(dict(self.iterate_items_for_display()))

@@ -56,8 +56,8 @@ class Dispatch(object):
 
 
 def merged(d1, d2):
-    for k, v in d2.iteritems():
-        if not k in d1:
+    for k, v in d2.items():
+        if k not in d1:
             val = v
         else:
             val = d1[k][:]
