@@ -5,7 +5,6 @@ from .langhelpers import (
     ComfortableProperty,
     Dispatch
 )
-from functools import partial
 from .structure import gennil, Nil
 from .structure import Success
 from .compat import text_
@@ -23,18 +22,6 @@ Op = SymbolPool(
 )
 
 
-class IncrementCounter(object):
-    def __init__(self):
-        self.i = 0
-
-    def __call__(self):
-        self.i += 1
-        return self.i
-
-
-_column_counter = IncrementCounter()
-
-
 def _field(name, **options):
     for k in options:
         if k not in Op:
@@ -42,12 +29,6 @@ def _field(name, **options):
     return (name, options)
 
 field = mergeable(_field).merged
-
-
-def column(fn, **options):
-    g = partial(fn, **options)
-    g._column_count = _column_counter()
-    return g
 
 
 class _OptionHandler(object):
@@ -221,22 +202,6 @@ def schema(name, fields,
     return type(name, (base,), attrs)
 
 
-def as_schema(missing=gennil,
-              opt_handler=_OptionHandler,
-              except_errors=VALIDATION_ERRORS):
-    def wrapper(cls):
-        xs = []
-        for name, f in cls.__dict__.items():
-            if hasattr(f, "_column_count"):
-                xs.append((f._column_count, f(name)))
-        fields = [v for _, v in sorted(xs, key=lambda x: x[0])]
-        return schema(name, fields, cls.__mro__[0],
-                      missing=missing,
-                      opt_handler=opt_handler,
-                      except_errors=except_errors)
-    return wrapper
-
-
 WithExtra = Dispatch("extra")
 Empty = object()
 
@@ -300,7 +265,7 @@ def validator(name, _converters,
             if extra_fields and self.extra is Empty:
                 raise InitializeError("at least, {0} need extra data! ({1})".format(extra_fields, spec))
             for k in extra_fields:
-                if not k in self.extra:
+                if k not in self.extra:
                     raise InitializeError("'{0}' is not found in extra. ({1})".format(k, spec))
 
     def validate(self):

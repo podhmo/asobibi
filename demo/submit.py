@@ -44,7 +44,7 @@ class Submit2(object):
     password = column(UnicodeField, required=False)
     confirm = column(UnicodeField, required=False)
 
-
+    # bind(validator, (password, confirm), same)
 PasswordValidator = validator("PasswordValidator", [((Submit.password, Submit.confirm), same)])
 
 

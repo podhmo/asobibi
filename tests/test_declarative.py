@@ -18,7 +18,9 @@ def test_it2():
 
 def test_declrative():
     from asobibi.converters import Int
-    from asobibi.construct import as_schema, column, field
+    from asobibi.construct import field
+    from asobibi.declarative import as_schema, column
+
     IntegerField = field(converters=[Int])
 
     @as_schema

@@ -74,7 +74,7 @@ def merged(d1, d2):
 
 class mergeable(object):
 
-    """ a realtive of functools.partial"""
+    """ a relative of functools.partial"""
 
     def __init__(self, fn, *args, **kwargs):
         self.fn = fn
