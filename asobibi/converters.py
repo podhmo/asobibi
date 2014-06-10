@@ -2,6 +2,7 @@ from functools import wraps
 from .exceptions import ValidationError
 from .compat import text_, bytes_
 
+
 def Int(k, val):
     return int(val)
 
