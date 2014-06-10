@@ -5,7 +5,6 @@ _dummy = object()
 
 
 class ChainMapView(Mapping):
-
     def __init__(self, *candidates):
         self.candidates = candidates
         self.size = None
@@ -14,7 +13,7 @@ class ChainMapView(Mapping):
     def __getitem__(self, k):
         for c in self.candidates:
             v = c.get(k, _dummy)
-            if not v is _dummy:
+            if v is not _dummy:
                 return v
         raise KeyError(k)
 
@@ -40,7 +39,6 @@ class ChainMapView(Mapping):
 
 
 class GentleDictMixin(object):
-
     def __repr__(self):
         return "<%r: %r>" % (self.__class__.__name__, self.items())
 
@@ -51,7 +49,6 @@ class GentleDictMixin(object):
 
 
 class Missing(object):
-
     def __nonzero__(self):
         return False
 
@@ -66,7 +63,6 @@ class Missing(object):
 
 
 class Failure(GentleDictMixin, OrderedDict):
-
     def __nonzero__(self):
         return False
 
@@ -82,7 +78,6 @@ class Failure(GentleDictMixin, OrderedDict):
 
 
 class Success(GentleDictMixin, OrderedDict):
-
     def on_failure(self):
         result = Failure()
         for k in self:
