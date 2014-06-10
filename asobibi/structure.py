@@ -55,6 +55,9 @@ class Missing(object):
     def __nonzero__(self):
         return False
 
+    def __bool__(self):
+        return False
+
     def __init__(self, v):
         self.v = v
 
@@ -65,6 +68,9 @@ class Missing(object):
 class Failure(GentleDictMixin, OrderedDict):
 
     def __nonzero__(self):
+        return False
+
+    def __bool__(self):
         return False
 
     def __missing__(self, k):
@@ -85,8 +91,10 @@ class Success(GentleDictMixin, OrderedDict):
 
 
 class _Nil(object):
-
     def __nonzero__(self):
+        return False
+
+    def __bool__(self):
         return False
 
     def __str__(self):

@@ -357,7 +357,7 @@ class TestsNestedValidator(object):
         point = self._get_validator__ordered()(point)
 
         assert point.validate() is not True
-        assert point.result
+        assert point.result is not True
         assert point.result["x"] == 30
         assert point.result["y"] == 20
 
