@@ -2,6 +2,8 @@ from collections import OrderedDict
 from collections import Mapping
 
 _dummy = object()
+
+
 class ChainMapView(Mapping):
     def __init__(self, *candidates):
         self.candidates = candidates
@@ -11,7 +13,7 @@ class ChainMapView(Mapping):
     def __getitem__(self, k):
         for c in self.candidates:
             v = c.get(k, _dummy)
-            if not v is _dummy:
+            if v is not _dummy:
                 return v
         raise KeyError(k)
 
@@ -35,30 +37,45 @@ class ChainMapView(Mapping):
             self.configure()
         return self.size
 
+
 class GentleDictMixin(object):
     def __repr__(self):
         return "<%r: %r>" % (self.__class__.__name__, self.items())
+
     def __getattr__(self, k):
         if k == "_OrderedDict__root":
             return OrderedDict.__getattr__(k)
         return self[k]
 
+
 class Missing(object):
     def __nonzero__(self):
         return False
-    def __init__(self,v):
+
+    def __bool__(self):
+        return False
+
+    def __init__(self, v):
         self.v = v
+
     def __repr__(self):
         return '<%r %r>' % (self.__class__.__name__, self.v)
+
 
 class Failure(GentleDictMixin, OrderedDict):
     def __nonzero__(self):
         return False
+
+    def __bool__(self):
+        return False
+
     def __missing__(self, k):
         v = self[k] = Missing(k)
         return v
+
     def on_failure(self):
         return self
+
 
 class Success(GentleDictMixin, OrderedDict):
     def on_failure(self):
@@ -67,11 +84,18 @@ class Success(GentleDictMixin, OrderedDict):
             result[k] = self[k]
         return result
 
+
 class _Nil(object):
     def __nonzero__(self):
         return False
+
+    def __bool__(self):
+        return False
+
     def __str__(self):
         return "<Nil>"
+
+
 def gennil(*args, **kwargs):
     return Nil
 

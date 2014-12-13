@@ -9,7 +9,7 @@
 
 sample code
 
-```
+```py
 from asobibi import (
     schema, 
     validator, 
@@ -22,7 +22,7 @@ from asobibi.exceptions import ValidationError
 
 validation definition
 
-```
+```py
 def tiny_email(k, x):
     if not "@" in x:
         params = dict(field=k, value=x, fmt="{field} is not email address")
@@ -38,7 +38,7 @@ Unicode = field(converters=[c.Unicode, not_empty])
 
 schema definition
 
-```
+```py
 Submit = schema(
     "Submit", 
     (Unicode("mail", initial="sample@mail", converters=[tiny_email]), 
@@ -106,7 +106,7 @@ assert submit.errors.keys() == ["password"]
 
 composed schema2
 
-```
+```py
 Int = field(converters=[c.Int])
 Person = schema("Person", [Unicode("name"), Int("age")])
 Address = schema("Address", [

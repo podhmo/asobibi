@@ -1,18 +1,21 @@
 from setuptools import setup, find_packages
 requires = [
     "zope.interface"
-    ]
-test_requires =[
+]
+test_requires = [
     "pytest"
 ]
 
 from setuptools.command.test import test as TestCommand
 
+
 class PyTest(TestCommand):
+
     def finalize_options(self):
         TestCommand.finalize_options(self)
         self.test_args = []
         self.test_suite = True
+
     def run_tests(self):
         import pytest
         pytest.main(self.test_args)
@@ -20,16 +23,16 @@ class PyTest(TestCommand):
 setup(name='asobibi',
       version='0.0.0',
       description='fmm..',
-      long_description="", 
+      long_description="",
       author='podhmo',
       package_dir={'': '.'},
       packages=find_packages('.'),
-      install_requires = requires,
-      cmdclass = {'test': PyTest},
+      install_requires=requires,
+      cmdclass={'test': PyTest},
       tests_require=["pytest"],
-      extras_require = {
-        "testing": test_requires
+      extras_require={
+          "testing": test_requires
       },
-      entry_points = """
+      entry_points="""
       """,
       )

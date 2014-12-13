@@ -1,12 +1,13 @@
 import inspect
-from langhelpers import (
-    SymbolPool, 
-    mergeable, 
-    ComfortableProperty, 
+from .langhelpers import (
+    SymbolPool,
+    mergeable,
+    ComfortableProperty,
     Dispatch
 )
 from .structure import gennil, Nil
 from .structure import Success
+from .compat import text_
 from .exceptions import (
     ConstructionError,
     ValidationError,
@@ -16,27 +17,30 @@ from .exceptions import (
 Op = SymbolPool(
     "initial",
     "required",
-    "converters", 
+    "converters",
     "label"
 )
 
+
 def _field(name, **options):
     for k in options:
-        if not k in Op:
+        if k not in Op:
             raise ConstructionError("{0} is not reserved in Op ({0})".format(Op))
     return (name, options)
 
 field = mergeable(_field).merged
 
+
 class _OptionHandler(object):
+
     def __init__(self, options):
         self.options = options
 
     @classmethod
     def get_required(cls, options):
-        return options.get(Op.required, True) 
+        return options.get(Op.required, True)
 
-    @classmethod       
+    @classmethod
     def get_converters(cls, options):
         return options.get(Op.converters, ())
 
@@ -48,32 +52,39 @@ class _OptionHandler(object):
             return on_missing(e)
 
 VALIDATION_ERRORS = (AssertionError, TypeError, ValueError, ValidationError)
+
+
 def getitem_not_nil(D, k):
     val = D[k]
     if val is Nil:
         raise ValidationError(dict(name="*missing", field=k, value=val))
     return val
 
+
 class ErrorList(dict):
     def iterate_items_for_system(self):
         for k, vs in self.items():
             yield k, [str(v) for v in vs]
+
     def iterate_items_for_display(self):
         for k, vs in self.items():
-            yield k, [unicode(v) for v in vs]
+            yield k, [text_(v) for v in vs]
 
     def __unicode__(self):
-        return unicode(dict(self.iterate_items_for_display()))
+        return text_(dict(self.iterate_items_for_display()))
 
     def __str__(self):
         return "{0!r} : {1}".format(self.__class__.__name__, dict(self.iterate_items_for_system()))
 
-def schema(name, fields, 
-           base=object, 
-           missing=gennil, 
+
+def schema(name, fields,
+           base=object,
+           missing=gennil,
            opt_handler=_OptionHandler,
            except_errors=VALIDATION_ERRORS):
+
     field_keys = [f for f, _ in fields]
+
     def __init__(self, _data=None, _fields=None, **data):
         self._fields = _fields or self.__class__._fields
         rawdata = _data.copy() if _data else {}
@@ -86,7 +97,7 @@ def schema(name, fields,
         self.rawdata = rawdata
         self.result = None
         self.errors = None
-        self._configured = False #I hate this. want to remove.
+        self._configured = False  # I hate this. want to remove.
 
     @classmethod
     def partial(cls, _data=None, **kwargs):
@@ -105,7 +116,7 @@ def schema(name, fields,
             result = result.on_failure()
         if not self.errors:
             self.errors = ErrorList()
-        if not k in self.errors:
+        if k not in self.errors:
             self.errors[k] = []
         self.errors[k].append(e)
         return result
@@ -113,7 +124,7 @@ def schema(name, fields,
     def on_validate(self, result, k, val, options):
         for validator in opt_handler.get_converters(options):
             val = validator(k, val)
-            ## field is schema
+            # field is schema
             if hasattr(val, "validate"):
                 if not val.validate():
                     result = self.on_failure(result, k, val.errors)
@@ -128,7 +139,7 @@ def schema(name, fields,
             self.result = self._validate()
             self._configured = True
         return not self.errors
-    
+
     def _validate(self):
         result = Success()
         for k, options in self._fields:
@@ -140,7 +151,7 @@ def schema(name, fields,
                 else:
                     result[k] = val = self.rawdata[k]
                     if val is not Nil:
-                        result = self.on_validate(result, k, val, options)                        
+                        result = self.on_validate(result, k, val, options)
             except KeyError as e:
                 if required:
                     result = self.on_failure(result, k, e)
@@ -156,7 +167,6 @@ def schema(name, fields,
         else:
             return self.result
 
-
     def rawdata_iter(self):
         rawdata = self.rawdata
         for f in field_keys:
@@ -166,7 +176,7 @@ def schema(name, fields,
         result = self.result
         for f in field_keys:
             yield result[f]
-        
+
     def __iter__(self):
         data = self.get_data()
         for f in self.field_keys:
@@ -176,23 +186,25 @@ def schema(name, fields,
              "rawdata_iter": rawdata_iter,
              "result_iter": result_iter,
              "__init__": __init__,
-             "partial": partial, 
-             "get_data": get_data, 
+             "partial": partial,
+             "get_data": get_data,
              "_fields": fields,
-             "field_keys": field_keys, 
-             "on_validate": on_validate, 
+             "field_keys": field_keys,
+             "on_validate": on_validate,
              "on_failure": on_failure,
-             "_validate": _validate, 
+             "_validate": _validate,
              "validate": validate}
 
     def access_property(self, k):
         return self.get_data()[k]
-    for f,_ in fields:
+    for f, _ in fields:
         attrs[f] = ComfortableProperty(f, access_property)
     return type(name, (base,), attrs)
 
+
 WithExtra = Dispatch("extra")
 Empty = object()
+
 
 def default_apply_dispatch(fn, ks, result, extra_ks, extra):
     if WithExtra.is_tagged(fn):
@@ -208,9 +220,10 @@ def default_apply_dispatch(fn, ks, result, extra_ks, extra):
     else:
         return fn(ks[0], *(result[k] for k in ks))
 
+
 def normalize(fields, validate_fn):
     """some. validation. and [ks, validator] -> [ks, extra_ks, validator]"""
-    if not isinstance(fields,(tuple,list)):
+    if not isinstance(fields, (tuple, list)):
         fields = (fields,)
 
     if len(fields) != len(set(fields)):
@@ -222,8 +235,8 @@ def normalize(fields, validate_fn):
         spec = inspect.getargspec(validate_fn)
 
     extra_fields = ()
-    arity_from_schema_fields = len(fields)+1
-    arity_from_validate_fn = len(spec.args)-len(spec.defaults or [])
+    arity_from_schema_fields = len(fields) + 1
+    arity_from_validate_fn = len(spec.args) - len(spec.defaults or [])
 
     if arity_from_schema_fields > arity_from_validate_fn:
         raise ConstructionError("too many candidate fields. len({0})+1 > {1}".format(fields, arity_from_validate_fn))
@@ -233,8 +246,9 @@ def normalize(fields, validate_fn):
         extra_fields = spec.args[arity_from_schema_fields:]
     return fields, extra_fields, validate_fn, spec
 
+
 def validator(name, _converters,
-              base=object, 
+              base=object,
               apply_dispatch=default_apply_dispatch,
               except_errors=VALIDATION_ERRORS):
 
@@ -247,11 +261,11 @@ def validator(name, _converters,
             self.setup_check()
 
     def setup_check(self):
-        for _,  extra_fields, _, spec in converters:
+        for _, extra_fields, _, spec in converters:
             if extra_fields and self.extra is Empty:
                 raise InitializeError("at least, {0} need extra data! ({1})".format(extra_fields, spec))
             for k in extra_fields:
-                if not k in self.extra:
+                if k not in self.extra:
                     raise InitializeError("'{0}' is not found in extra. ({1})".format(k, spec))
 
     def validate(self):
@@ -273,20 +287,22 @@ def validator(name, _converters,
     @property
     def result(self):
         return self.schema.result
+
     @result.setter
     def result(self, r):
         self.schema.result = r
+
     @property
     def errors(self):
         return self.schema.errors
 
-    def on_failure(self,result, k, e):
+    def on_failure(self, result, k, e):
         return self.schema.on_failure(result, k, e)
 
     return type(name,
                 (base,),
                 {"__init__": __init__,
-                 "setup_check": setup_check, 
+                 "setup_check": setup_check,
                  "_converters": converters,
                  "validate": validate,
                  "_validate": _validate,

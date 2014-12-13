@@ -2,7 +2,9 @@
 
 import unittest
 
+
 class TranslationsTests(unittest.TestCase):
+
     def test_render(self):
         from asobibi.translations import SystemMessage
         s = SystemMessage("input", fmt="NoInput {field}", mapping={"field": "----"})
